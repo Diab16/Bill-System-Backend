@@ -1,6 +1,6 @@
 ﻿namespace Bill_system_API.Models
 {
-    public class invoiceItem
+    public class InvoiceItem
     {
         public int Id { get; set; }
         public double SellingPrice { get; set; }
