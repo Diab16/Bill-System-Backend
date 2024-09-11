@@ -9,7 +9,8 @@ namespace Bill_system_API.Models
         [UniqueCompany]
         public string Name { get; set; }
         public string? Notes { get; set; }
+        public virtual ICollection<Type>? Types { get; set; }
         public virtual ICollection<Item>? Items { get; set; }
-
+        
     }
 }
