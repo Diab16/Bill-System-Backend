@@ -9,12 +9,13 @@ namespace Bill_system_API.Models
         public double SellingPrice { get; set; }
         public double BuyingPrice { get; set; }
         public int AvailableAmount {  get; set; }
+        public string? Notes { get; set; }
         public int CompanyId { get; set; }
-        public Company Company { get; set; }
+        public virtual Company? Company { get; set; }
         public int TypeId { get; set; }
-        public Type Type { get; set; }
+        public virtual Type? Type { get; set; }
         public int UnitId { get; set; }
-        public Unit Unit { get; set; }
+        public virtual Unit? Unit { get; set; }
         //public ICollection<invoiceItem> invoices { get; set; }
 
     }
