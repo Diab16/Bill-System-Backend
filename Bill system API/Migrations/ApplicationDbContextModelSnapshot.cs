@@ -79,7 +79,7 @@ namespace Bill_system_API.Migrations
                         {
                             Id = 2,
                             Name = "Samsung"
-                        });
+                });
                 });
 
             modelBuilder.Entity("Bill_system_API.Models.Employee", b =>

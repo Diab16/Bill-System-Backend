@@ -12,6 +12,15 @@ using Bill_system_API.MappinigProfiles;
 using Bill_system_API.Models;
 using Microsoft.EntityFrameworkCore;
 
+using Bill_system_API.IRepositories;
+using Bill_system_API.Models;
+using Bill_system_API.Repositories;
+using Microsoft.EntityFrameworkCore;
+using NuGet.Protocol.Plugins;
+using System.Text.Json.Serialization;
+using static System.Net.Mime.MediaTypeNames;
+using Type = Bill_system_API.Models.Type;
+
 namespace Bill_system_API
 {
     public class Program
@@ -21,6 +30,16 @@ namespace Bill_system_API
             var builder = WebApplication.CreateBuilder(args);
             string txt = "";
             // Add services to the container.
+            builder.Services.AddDbContext<ApplicationDbContext>(op => op.UseLazyLoadingProxies().UseSqlServer(builder.Configuration.GetConnectionString("cslocal")));
+              //builder.Services.AddControllers().AddJsonOptions(x =>
+              //x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve);
+              //builder.Services.AddControllers();
+            builder.Services.AddControllers().AddNewtonsoftJson(op=>op.SerializerSettings.ReferenceLoopHandling=Newtonsoft.Json.ReferenceLoopHandling.Ignore);
+            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
+
+
+
             builder.Services.AddDbContext<ApplicationDbContext>(op => op.UseLazyLoadingProxies().UseSqlServer(builder.Configuration.GetConnectionString("cslocal")));
               //builder.Services.AddControllers().AddJsonOptions(x =>
               //x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve);
@@ -52,6 +71,26 @@ namespace Bill_system_API
             builder.Services.AddAutoMapper(M => M.AddProfile(new CompanyProfile()));
             builder.Services.AddAutoMapper(M => M.AddProfile(new UnitProfile()));
             builder.Services.AddAutoMapper(M => M.AddProfile(new TypesProfile()));
+
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy(txt,
+                builder =>
+                {
+                    builder.AllowAnyOrigin();
+                    builder.AllowAnyMethod();
+                    builder.AllowAnyHeader();
+                });
+            });
+
+            //Repository
+            var types = new[] { typeof(Client), typeof(Company), typeof(Employee), typeof(Invoice), typeof(InvoiceItem), typeof(Item), typeof(Type), typeof(Unit) };
+            foreach (var type in types)
+            {
+                var interfaceType = typeof(IGenericRepository<>).MakeGenericType(type);
+                var implementationType = typeof(GenericRepository<>).MakeGenericType(type);
+                builder.Services.AddScoped(interfaceType, implementationType);
+            }
 
 
             var app = builder.Build();
