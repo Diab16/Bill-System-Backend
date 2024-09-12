@@ -4,7 +4,7 @@ namespace Bill_system_API.Models
 {
     public class Item
     {
-        public string Id { get; set; }
+        public int Id { get; set; }
         public string Name { get; set; }
         public double SellingPrice { get; set; }
         public double BuyingPrice { get; set; }

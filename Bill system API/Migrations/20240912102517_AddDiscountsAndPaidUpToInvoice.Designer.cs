@@ -4,6 +4,7 @@ using Bill_system_API.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Bill_system_API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240912102517_AddDiscountsAndPaidUpToInvoice")]
+    partial class AddDiscountsAndPaidUpToInvoice
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -152,8 +155,8 @@ namespace Bill_system_API.Migrations
                     b.Property<double>("TotalValue")
                         .HasColumnType("float");
 
-                    b.Property<int?>("itemId")
-                        .HasColumnType("int");
+                    b.Property<string>("itemId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
@@ -166,11 +169,8 @@ namespace Bill_system_API.Migrations
 
             modelBuilder.Entity("Bill_system_API.Models.Item", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("AvailableAmount")
                         .HasColumnType("int");
