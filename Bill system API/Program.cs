@@ -4,6 +4,7 @@ using Bill_system_API.Models;
 using Bill_system_API.Repositories;
 using Microsoft.EntityFrameworkCore;
 using NuGet.Protocol.Plugins;
+using System.Text.Json.Serialization;
 using static System.Net.Mime.MediaTypeNames;
 using Type = Bill_system_API.Models.Type;
 
@@ -17,8 +18,15 @@ namespace Bill_system_API
             string txt = "";
             // Add services to the container.
             builder.Services.AddDbContext<ApplicationDbContext>(op => op.UseLazyLoadingProxies().UseSqlServer(builder.Configuration.GetConnectionString("cslocal")));
-            builder.Services.AddControllers();
+              //builder.Services.AddControllers().AddJsonOptions(x =>
+              //x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve);
+              //builder.Services.AddControllers();
+            builder.Services.AddControllers().AddNewtonsoftJson(op=>op.SerializerSettings.ReferenceLoopHandling=Newtonsoft.Json.ReferenceLoopHandling.Ignore);
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
+
+
+
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddCors(options =>
