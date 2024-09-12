@@ -7,7 +7,7 @@ namespace Bill_system_API.MappinigProfiles
     {
         public TypesProfile()
         {
-            CreateMap<TypeDto ,Type>().ReverseMap();
+            CreateMap<TypeDTO ,Type>().ReverseMap();
 
         }
     }

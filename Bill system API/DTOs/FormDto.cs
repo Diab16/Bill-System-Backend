@@ -3,8 +3,8 @@
     public class FormDto
     {
 
-        public List<CompanyDTO>? Companies { get; set; } = new List<CompanyDTO>();
-        public List<CompanyDTO>? Types { get; set; } = new List<CompanyDTO>();
-        public List<UnitDto>? Units { get; set; } = new List<UnitDto>();
+        public List<ItemCompanyDto>? Companies { get; set; } = new List<ItemCompanyDto>();
+        public List<itemTypeDto>? Types { get; set; } = new List<itemTypeDto>();
+        public List<itemUnitDto>? Units { get; set; } = new List<itemUnitDto>();
     }
 }

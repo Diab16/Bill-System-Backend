@@ -8,7 +8,7 @@ namespace Bill_system_API.MappinigProfiles
     {
         public CompanyProfile()
         {
-            CreateMap<CompanyDto , Company>().ReverseMap();
+            CreateMap<CompanyDTO , Company>().ReverseMap();
         }
     }
 }

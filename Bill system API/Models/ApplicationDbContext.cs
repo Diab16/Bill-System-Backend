@@ -6,13 +6,13 @@ namespace Bill_system_API.Models
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            if (!optionsBuilder.IsConfigured)
-            {
-                optionsBuilder.UseLazyLoadingProxies();
-            }
-        }
+        //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        //{
+        //    if (!optionsBuilder.IsConfigured)
+        //    {
+        //        optionsBuilder.UseLazyLoadingProxies();
+        //    }
+        //}
         public DbSet<Employee> Employees { get; set; }
         public DbSet<Client> Client { get; set; }
         public DbSet<Company> Companies { get; set; }

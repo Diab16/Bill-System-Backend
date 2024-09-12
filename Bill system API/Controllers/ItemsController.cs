@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using Bill_system_API.DTOs;
+using Bill_system_API.IRepositories;
 using Bill_system_API.Models;
+using Bill_system_API.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Immutable;
@@ -14,11 +16,13 @@ namespace Bill_system_API.Controllers
     {
         private readonly ApplicationDbContext dbContext;
         private readonly IMapper mapper;
+        private readonly IUnitOfWork unitOfWork;
 
-        public ItemsController(ApplicationDbContext dbContext , IMapper mapper)
+        public ItemsController(ApplicationDbContext dbContext , IMapper mapper , IUnitOfWork unitOfWork)
         {
             this.dbContext = dbContext;
             this.mapper = mapper;
+            this.unitOfWork = unitOfWork;
         }
 
 
@@ -26,22 +30,22 @@ namespace Bill_system_API.Controllers
         [HttpGet("FormData")]
         public ActionResult<ItemDto> GetRelatedData()
         {
-            var companies = dbContext.Companies
-                .Select(c => new CompanyDTO
+            var companies = unitOfWork.Companies.GetAll()
+                .Select(c => new ItemCompanyDto
                 {
                     Id = c.Id,
                     Name = c.Name
                 }).ToList();
 
-            var types = dbContext.Types
-                .Select(t => new TypeDTO
+            var types = unitOfWork.Types.GetAll()
+                .Select(t => new itemTypeDto
                 {
                     Id = t.Id,
-                    TypeName = t.Name
+                    Name = t.Name
                 }).ToList();
 
-            var units = dbContext.Units
-                .Select(u => new UnitDto
+            var units = unitOfWork.Units.GetAll()
+                .Select(u => new itemUnitDto
                 {
                     Id = u.Id,
                     Name = u.Name
@@ -50,7 +54,7 @@ namespace Bill_system_API.Controllers
             var formDto = new FormDto
             {
                 Companies = companies,
-                Types = types,
+                Types =types,
                 Units = units
             };
 
@@ -61,7 +65,7 @@ namespace Bill_system_API.Controllers
         [HttpGet("AllItems")]
         public ActionResult<ItemDto> getAllItems()
         {
-            List<Item> items = dbContext.Items.ToList();
+            List<Item> items = unitOfWork.Items.GetAll().ToList();
            List<ItemDto> itemsmaped = mapper.Map<List<Item>,List<ItemDto>>(items);
             return Ok(itemsmaped);
         }
@@ -69,30 +73,66 @@ namespace Bill_system_API.Controllers
         // POST method to add a new item
         [HttpPost]
         public ActionResult<Item> AddItem([FromBody] ItemDto itemDto)
-        { 
+        {
 
-            var company = dbContext.Companies.Find(itemDto.CompanyId);
-            var type = dbContext.Types.Find(itemDto.TypeId);
-            var unit = dbContext.Units.Find(itemDto.UnitId);
+            var company = unitOfWork.Companies.getById(itemDto.CompanyId);
+            var type = unitOfWork.Types.getById(itemDto.TypeId);
+            var unit = unitOfWork.Units.getById(itemDto.UnitId);
 
             if (company == null || type == null || unit == null)
             {
                 return BadRequest("Invalid company, type, or unit ID.");
             }
 
-             var item = mapper.Map<ItemDto ,Item>(itemDto);
-             item.Id = Guid.NewGuid().ToString(); 
-             item.CompanyId = company.Id;
-             item.TypeId = type.Id;
-             item.UnitId = unit.Id;
-       
-            dbContext.Items.Add(item);
-            dbContext.SaveChanges();
+            var item = mapper.Map<ItemDto, Item>(itemDto);
+            item.Id = Guid.NewGuid().ToString();
+            item.CompanyId = company.Id;
+            item.TypeId = type.Id;
+            item.UnitId = unit.Id;
+
+            unitOfWork.Items.add(item);
+            unitOfWork.Complete();
 
             return Ok(itemDto);
         }
 
 
+        //[HttpPost]
+        //public ActionResult<Item> AddItem([FromBody] ItemDto itemDto)
+        //{
+        //    if (!ModelState.IsValid)
+        //    {
+        //        return BadRequest(ModelState);
+        //    }
+
+        //    try
+        //    {
+        //        var company = unitOfWork.Companies.getById(itemDto.CompanyId);
+        //        var type = unitOfWork.Types.getById(itemDto.TypeId);
+        //        var unit = unitOfWork.Units.getById(itemDto.UnitId);
+
+        //        if (company == null || type == null || unit == null)
+        //        {
+        //            return BadRequest("Invalid company, type, or unit ID.");
+        //        }
+
+        //        var item = mapper.Map<ItemDto, Item>(itemDto);
+        //        item.Id = Guid.NewGuid().ToString();
+        //        item.CompanyId = company.Id;
+        //        item.TypeId = type.Id;
+        //        item.UnitId = unit.Id;
+
+        //        unitOfWork.Items.add(item);
+
+        //        unitOfWork.Complete();
+
+        //        return Ok(item);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, "An error occurred while processing your request.");
+        //    }
+        //}
 
 
     }
