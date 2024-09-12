@@ -7,7 +7,7 @@
         public double TotalValue { get; set; }
         public double Quantity { get; set; }
         public double Discount { get; set; }
-        public Invoice Invoice { get; set; }
-        public Item item { get; set; }
+        public virtual Invoice? Invoice { get; set; }
+        public virtual Item? item { get; set; }
      }
 }

@@ -4,7 +4,10 @@
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public ICollection<Item> Items { get; set; }
+        public string? Notes { get; set; }
+        public int CompanyId{ get; set; }
+        public virtual Company Company { get; set; }
+        public virtual ICollection<Item>? Items { get; set; }
 
     }
 }
