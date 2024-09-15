@@ -94,6 +94,53 @@ namespace Bill_system_API.Controllers
         }
 
 
+        // Delete Type (DELETE)
+        [HttpDelete("{id}")]
+        public IActionResult DeleteType(int id)
+        {
+            var existingType = _typeRepository.getById(id);
+            if (existingType == null)
+            {
+                return NotFound(new { message = "Type not found" });
+            }
 
+            _typeRepository.delete(existingType);
+            _typeRepository.save();
+
+            return NoContent();
+        }
+
+        [HttpPut("{id}")]
+        public IActionResult UpdateType(int id, [FromBody] TypeDTO typeDto)
+        {
+            var existingType = _typeRepository.getById(id);
+            if (existingType == null)
+            {
+                return NotFound(new { message = "Type not found" });
+            }
+
+            var company = _companyRepository.GetAll().FirstOrDefault(c => c.Name == typeDto.CompanyName);
+            if (company == null)
+            {
+                return BadRequest(new { message = "Company Not Found" });
+            }
+
+            // Check for duplicate type name, excluding the current type
+            var duplicateType = _typeRepository.GetAll().FirstOrDefault(t => t.Name == typeDto.TypeName && t.Id != id);
+            if (duplicateType != null)
+            {
+                return BadRequest(new { message = "Another type with the same name already exists" });
+            }
+
+            // Update the existing type
+            existingType.Name = typeDto.TypeName;
+            existingType.Notes = typeDto.TypeNotes;
+            existingType.CompanyId = company.Id;
+
+            _typeRepository.update(existingType);
+            _typeRepository.save();
+
+            return Ok(existingType);
+        }
     }
 }
