@@ -137,6 +137,116 @@ namespace Bill_system_API.Controllers
             }
         }
 
+
+        // Delete Invoice (DELETE)
+        [HttpDelete("{id}")]
+        public IActionResult DeleteInvoice(int id)
+        {
+            var existingInvoice = _invoiceRepository.getById(id);
+            if (existingInvoice == null)
+            {
+                return NotFound($"Invoice with ID {id} not found.");
+            }
+
+            _invoiceRepository.delete(existingInvoice);
+            _invoiceRepository.save();
+
+            return NoContent();
+        }
+
+
+        // Update Invoice (PUT)
+        [HttpPut("{id}")]
+        public IActionResult UpdateInvoice(int id, [FromBody] InvoiceDTO invoiceDTO)
+        {
+            var existingInvoice = _invoiceRepository.getById(id);
+            if (existingInvoice == null)
+            {
+                return NotFound($"Invoice with ID {id} not found.");
+            }
+
+            // Validate Date
+            if (invoiceDTO.Date == default)
+            {
+                return BadRequest("Date is required");
+            }
+
+            // Validate Start Time and End Time
+            if (invoiceDTO.EndTime <= invoiceDTO.StartTime)
+            {
+                return BadRequest("End Time must be greater than Start Time");
+            }
+
+            // Validate Client and Employee
+            var client = _clientRepository.getById(invoiceDTO.ClientId);
+            var employee = _employeeRepository.getById(invoiceDTO.EmployeeId);
+            if (client == null)
+            {
+                return BadRequest("Invalid Client ID");
+            }
+            if (employee == null)
+            {
+                return BadRequest("Invalid Employee ID");
+            }
+
+            // Update invoice properties
+            existingInvoice.Date = DateOnly.FromDateTime(invoiceDTO.Date);
+            existingInvoice.StartTime = TimeOnly.FromDateTime(DateTime.Today.Add(invoiceDTO.StartTime));
+            existingInvoice.EndTime = TimeOnly.FromDateTime(DateTime.Today.Add(invoiceDTO.EndTime));
+            existingInvoice.Client = client;
+            existingInvoice.Employee = employee;
+            existingInvoice.PercentageDiscount = invoiceDTO.PercentageDiscount;
+            existingInvoice.ValueDiscount = invoiceDTO.ValueDiscount;
+            existingInvoice.PaidUp = invoiceDTO.PaidUp;
+
+            // Update Invoice Items
+            existingInvoice.InvoiceItems.Clear();
+            foreach (var itemDto in invoiceDTO.InvoiceItems)
+            {
+                var item = _itemRepository.getById(itemDto.ItemId);
+                if (item == null)
+                {
+                    return BadRequest($"Item with ID {itemDto.ItemId} not found");
+                }
+
+                if (itemDto.Quantity <= 0)
+                {
+                    return BadRequest("Quantity must be greater than zero");
+                }
+
+                double totalValue = (itemDto.SellingPrice * itemDto.Quantity) - itemDto.Discount;
+                var invoiceItem = new InvoiceItem
+                {
+                    item = item,
+                    SellingPrice = itemDto.SellingPrice,
+                    Quantity = itemDto.Quantity,
+                    Discount = itemDto.Discount,
+                    TotalValue = totalValue,
+                    Invoice = existingInvoice
+                };
+                existingInvoice.InvoiceItems.Add(invoiceItem);
+            }
+
+            // Calculate Derived Attributes
+            double billTotal = existingInvoice.InvoiceItems.Sum(i => i.TotalValue);
+            double netTotal = billTotal - existingInvoice.ValueDiscount - (existingInvoice.PercentageDiscount / 100) * billTotal;
+            double theRest = netTotal - existingInvoice.PaidUp;
+
+            // Save the updated invoice
+            _invoiceRepository.update(existingInvoice);
+            _invoiceRepository.save();
+
+            var response = new
+            {
+                InvoiceId = existingInvoice.Id,
+                BillTotal = billTotal,
+                NetTotal = netTotal,
+                TheRest = theRest
+            };
+
+            return Ok(response);
+        }
+
         //  method to generate the Bill Number
         private int GenerateBillNumber()
         {
