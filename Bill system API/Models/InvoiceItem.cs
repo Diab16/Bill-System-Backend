@@ -9,5 +9,5 @@
         public double Discount { get; set; }
         public virtual Invoice? Invoice { get; set; }
         public virtual Item? item { get; set; }
-     }
+    }
 }

@@ -39,6 +39,7 @@ namespace Bill_system_API
                     builder.AllowAnyHeader();
                 });
             });
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>(); // IUnitOfWork
 
             //Repository
             var types = new[] { typeof(Client), typeof(Company), typeof(Employee), typeof(Invoice), typeof(InvoiceItem), typeof(Item), typeof(Type), typeof(Unit) };
