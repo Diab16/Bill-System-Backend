@@ -27,21 +27,7 @@ namespace Bill_system_API.Models
         {
              modelBuilder.Entity<Item>().HasKey(e => e.Id);
 
-            modelBuilder.Entity<Company>().HasData(
-                 new Company { Id = 1 , Name = "Apple"},
-                 new Company { Id = 2 , Name = "Samsung"}
-                );
-
-
-            modelBuilder.Entity<Type>().HasData(
-                new Type { Id = 1, Name = "Elctronics" }
-               );
-
-            modelBuilder.Entity<Unit>().HasData(
-                new Company { Id = 1, Name = "Item" },
-                new Company { Id = 2, Name = "m" }
-               );
-
+        
             base.OnModelCreating(modelBuilder);
 
 

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Bill_system_API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240911091404_fristmigration")]
-    partial class fristmigration
+    [Migration("20240916100554_FristMigartion")]
+    partial class FristMigartion
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -21,6 +21,9 @@ namespace Bill_system_API.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "8.0.8")
+                .HasAnnotation("Proxies:ChangeTracking", false)
+                .HasAnnotation("Proxies:CheckEquality", false)
+                .HasAnnotation("Proxies:LazyLoading", true)
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -34,7 +37,6 @@ namespace Bill_system_API.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Address")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
@@ -42,7 +44,6 @@ namespace Bill_system_API.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Phone")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -60,6 +61,9 @@ namespace Bill_system_API.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Notes")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -95,20 +99,29 @@ namespace Bill_system_API.Migrations
                     b.Property<int>("BillNumber")
                         .HasColumnType("int");
 
-                    b.Property<int>("ClientId")
+                    b.Property<int?>("ClientId")
                         .HasColumnType("int");
 
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date");
 
-                    b.Property<int>("EmployeeId")
+                    b.Property<int?>("EmployeeId")
                         .HasColumnType("int");
 
                     b.Property<TimeOnly>("EndTime")
                         .HasColumnType("time");
 
+                    b.Property<double>("PaidUp")
+                        .HasColumnType("float");
+
+                    b.Property<double>("PercentageDiscount")
+                        .HasColumnType("float");
+
                     b.Property<TimeOnly>("StartTime")
                         .HasColumnType("time");
+
+                    b.Property<double>("ValueDiscount")
+                        .HasColumnType("float");
 
                     b.HasKey("Id");
 
@@ -130,7 +143,7 @@ namespace Bill_system_API.Migrations
                     b.Property<double>("Discount")
                         .HasColumnType("float");
 
-                    b.Property<int>("InvoiceId")
+                    b.Property<int?>("InvoiceId")
                         .HasColumnType("int");
 
                     b.Property<double>("Quantity")
@@ -142,8 +155,8 @@ namespace Bill_system_API.Migrations
                     b.Property<double>("TotalValue")
                         .HasColumnType("float");
 
-                    b.Property<string>("itemId")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int?>("itemId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -156,8 +169,11 @@ namespace Bill_system_API.Migrations
 
             modelBuilder.Entity("Bill_system_API.Models.Item", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("AvailableAmount")
                         .HasColumnType("int");
@@ -169,6 +185,10 @@ namespace Bill_system_API.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Notes")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<double>("SellingPrice")
@@ -199,11 +219,19 @@ namespace Bill_system_API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("CompanyId");
 
                     b.ToTable("Types");
                 });
@@ -220,6 +248,9 @@ namespace Bill_system_API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.ToTable("Units");
@@ -229,15 +260,11 @@ namespace Bill_system_API.Migrations
                 {
                     b.HasOne("Bill_system_API.Models.Client", "Client")
                         .WithMany("Invoices")
-                        .HasForeignKey("ClientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ClientId");
 
                     b.HasOne("Bill_system_API.Models.Employee", "Employee")
                         .WithMany("Invoices")
-                        .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("EmployeeId");
 
                     b.Navigation("Client");
 
@@ -248,9 +275,7 @@ namespace Bill_system_API.Migrations
                 {
                     b.HasOne("Bill_system_API.Models.Invoice", "Invoice")
                         .WithMany("InvoiceItems")
-                        .HasForeignKey("InvoiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("InvoiceId");
 
                     b.HasOne("Bill_system_API.Models.Item", "item")
                         .WithMany()
@@ -288,6 +313,17 @@ namespace Bill_system_API.Migrations
                     b.Navigation("Unit");
                 });
 
+            modelBuilder.Entity("Bill_system_API.Models.Type", b =>
+                {
+                    b.HasOne("Bill_system_API.Models.Company", "Company")
+                        .WithMany("Types")
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Company");
+                });
+
             modelBuilder.Entity("Bill_system_API.Models.Client", b =>
                 {
                     b.Navigation("Invoices");
@@ -296,6 +332,8 @@ namespace Bill_system_API.Migrations
             modelBuilder.Entity("Bill_system_API.Models.Company", b =>
                 {
                     b.Navigation("Items");
+
+                    b.Navigation("Types");
                 });
 
             modelBuilder.Entity("Bill_system_API.Models.Employee", b =>

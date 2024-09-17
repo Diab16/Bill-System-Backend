@@ -9,6 +9,7 @@ namespace Bill_system_API.DTOs
     public class ItemDto
     {
 
+        public int Id { get; set; }  
         [Required]
         [ItemNameUniqueValidation]
         public string? Name { get; set; }
@@ -22,11 +23,16 @@ namespace Bill_system_API.DTOs
         [Required]
         public int CompanyId { get; set; }
         [Required]
+
         public int TypeId { get; set; }
         [Required]
         public int UnitId { get; set; }
 
-   
+        public string? Notes { get; set; }
+        public ItemCompanyDto? Company { get; set; }
+        public itemTypeDto? Type { get; set; }
+        public itemUnitDto? Unit { get; set; }
+
 
 
     }

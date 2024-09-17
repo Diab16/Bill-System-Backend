@@ -66,18 +66,6 @@ namespace Bill_system_API.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Companies");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Name = "Apple"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Name = "Samsung"
-                        });
                 });
 
             modelBuilder.Entity("Bill_system_API.Models.Employee", b =>
@@ -164,8 +152,8 @@ namespace Bill_system_API.Migrations
                     b.Property<double>("TotalValue")
                         .HasColumnType("float");
 
-                    b.Property<string>("itemId")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int?>("itemId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -178,8 +166,11 @@ namespace Bill_system_API.Migrations
 
             modelBuilder.Entity("Bill_system_API.Models.Item", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("AvailableAmount")
                         .HasColumnType("int");
@@ -240,14 +231,6 @@ namespace Bill_system_API.Migrations
                     b.HasIndex("CompanyId");
 
                     b.ToTable("Types");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CompanyId = 0,
-                            Name = "Elctronics"
-                        });
                 });
 
             modelBuilder.Entity("Bill_system_API.Models.Unit", b =>
@@ -268,18 +251,6 @@ namespace Bill_system_API.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Units");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Name = "Item"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Name = "m"
-                        });
                 });
 
             modelBuilder.Entity("Bill_system_API.Models.Invoice", b =>

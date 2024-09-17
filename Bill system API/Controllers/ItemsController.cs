@@ -14,13 +14,11 @@ namespace Bill_system_API.Controllers
     [ApiController]
     public class ItemsController : ControllerBase
     {
-        private readonly ApplicationDbContext dbContext;
         private readonly IMapper mapper;
         private readonly IUnitOfWork unitOfWork;
 
-        public ItemsController(ApplicationDbContext dbContext , IMapper mapper , IUnitOfWork unitOfWork)
+        public ItemsController( IMapper mapper , IUnitOfWork unitOfWork)
         {
-            this.dbContext = dbContext;
             this.mapper = mapper;
             this.unitOfWork = unitOfWork;
         }
@@ -65,75 +63,117 @@ namespace Bill_system_API.Controllers
         [HttpGet("AllItems")]
         public ActionResult<ItemDto> getAllItems()
         {
-            List<Item> items = unitOfWork.Items.GetAll().ToList();
-           List<ItemDto> itemsmaped = mapper.Map<List<Item>,List<ItemDto>>(items);
-            return Ok(itemsmaped);
+            var items = unitOfWork.Items.GetAll().ToList();
+            IEnumerable<ItemDto> itemmaped = mapper.Map<IEnumerable<ItemDto>>(items);
+            foreach (var item in items)
+            {
+                var itemDto = itemmaped.First(dto => dto.Id == item.Id);
+
+                // Manually map related entities
+                itemDto.Company = new ItemCompanyDto
+                {
+                    Id = item.Company.Id,
+                    Name = item.Company.Name
+                };
+                itemDto.Unit = new itemUnitDto
+                {
+                    Id = item.Unit.Id,
+                    Name = item.Unit.Name
+                };
+                itemDto.Type = new itemTypeDto
+                {
+                    Id = item.Type.Id,
+                    Name = item.Type.Name
+                };
+            }
+            return Ok(itemmaped);
         }
 
-        // POST method to add a new item
+
+
         [HttpPost]
         public ActionResult<Item> AddItem([FromBody] ItemDto itemDto)
         {
-
-            var company = unitOfWork.Companies.getById(itemDto.CompanyId);
-            var type = unitOfWork.Types.getById(itemDto.TypeId);
-            var unit = unitOfWork.Units.getById(itemDto.UnitId);
-
-            if (company == null || type == null || unit == null)
+            if (!ModelState.IsValid)
             {
-                return BadRequest("Invalid company, type, or unit ID.");
+                return BadRequest(ModelState);
             }
 
-            var item = mapper.Map<ItemDto, Item>(itemDto);
-            item.Id = Guid.NewGuid().ToString();
-            item.CompanyId = company.Id;
-            item.TypeId = type.Id;
-            item.UnitId = unit.Id;
+            try
+            {
+                var company = unitOfWork.Companies.getById(itemDto.CompanyId);
+                var type = unitOfWork.Types.getById(itemDto.TypeId);
+                var unit = unitOfWork.Units.getById(itemDto.UnitId);
 
-            unitOfWork.Items.add(item);
-            unitOfWork.Complete();
+                if (company == null || type == null || unit == null)
+                {
+                    return BadRequest("Invalid company, type, or unit ID.");
+                }
 
-            return Ok(itemDto);
+                var item = mapper.Map<ItemDto, Item>(itemDto);
+                item.CompanyId = company.Id;
+                item.TypeId = type.Id;
+                item.UnitId = unit.Id;
+
+                unitOfWork.Items.add(item);
+
+                unitOfWork.Complete();
+
+                return Ok(item);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while processing your request.");
+            }
         }
 
 
-        //[HttpPost]
-        //public ActionResult<Item> AddItem([FromBody] ItemDto itemDto)
-        //{
-        //    if (!ModelState.IsValid)
-        //    {
-        //        return BadRequest(ModelState);
-        //    }
+        [HttpGet("GetById")]
+        public ActionResult<Item> GetItemById(int id)
+        {
+            Item item = unitOfWork.Items.getById(id);
+            if (item == null) return NotFound();
+            ItemDto itemDto = mapper.Map<Item, ItemDto>(item); 
+            return Ok(itemDto);
+        }
 
-        //    try
-        //    {
-        //        var company = unitOfWork.Companies.getById(itemDto.CompanyId);
-        //        var type = unitOfWork.Types.getById(itemDto.TypeId);
-        //        var unit = unitOfWork.Units.getById(itemDto.UnitId);
+        [HttpDelete]
+       public ActionResult<Item> DeleteItem(int id )
+        {
+            Item item = unitOfWork.Items.getById(id);
+            if (item == null) return NotFound();
+            unitOfWork.Items.delete(item);
+            unitOfWork.Complete();
+            return Ok(item);
 
-        //        if (company == null || type == null || unit == null)
-        //        {
-        //            return BadRequest("Invalid company, type, or unit ID.");
-        //        }
+        }
 
-        //        var item = mapper.Map<ItemDto, Item>(itemDto);
-        //        item.Id = Guid.NewGuid().ToString();
-        //        item.CompanyId = company.Id;
-        //        item.TypeId = type.Id;
-        //        item.UnitId = unit.Id;
 
-        //        unitOfWork.Items.add(item);
 
-        //        unitOfWork.Complete();
+        [HttpPut]
+        
+        public ActionResult<ItemDto> EditItem([FromBody] ItemDto itemDto)
+        {
+            if (itemDto.Id == 0) return BadRequest("Invalid ID.");
 
-        //        return Ok(item);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return StatusCode(500, "An error occurred while processing your request.");
-        //    }
-        //}
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors);
+                return BadRequest(new { errors = errors.Select(e => e.ErrorMessage) });
+            }
 
+            try
+            {
+                Item itemMapped = mapper.Map<ItemDto, Item>(itemDto);
+                unitOfWork.Items.update(itemMapped);
+                unitOfWork.Complete();
+                return Ok(itemMapped);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
 
     }
 }

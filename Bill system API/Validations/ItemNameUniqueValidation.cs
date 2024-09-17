@@ -1,5 +1,7 @@
 ﻿using Bill_system_API.DTOs;
+using Bill_system_API.IRepositories;
 using Bill_system_API.Models;
+using Bill_system_API.Repositories;
 using System.ComponentModel.DataAnnotations;
 
 namespace Bill_system_API.Validatioons
@@ -31,11 +33,11 @@ namespace Bill_system_API.Validatioons
 
             // get the course from dbcontext and compare
 
-            Item? itemfromdb = dbContext.Items.FirstOrDefault(c => c.Name == itemName);
+            Item? itemFromDb = dbContext.Items.FirstOrDefault(c => c.Name == itemName && c.Id != items.Id);
 
-            if (itemfromdb == null) return ValidationResult.Success;
+            if (itemFromDb == null) return ValidationResult.Success;
 
-            else return new ValidationResult($"{itemName} Title is Already Exist in The Category Selected  ");
+            else return new ValidationResult($"{itemName} is Already Exist in The Category Selected  ");
         }
     }
 }
