@@ -34,6 +34,7 @@ namespace Bill_system_API
                           .AllowAnyHeader();
                 });
             });
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>(); // IUnitOfWork
 
             // AutoMapper configuration
             builder.Services.AddAutoMapper(cfg =>
