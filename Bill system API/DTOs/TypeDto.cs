@@ -2,9 +2,12 @@
 {
     public class TypeDTO
     {
+       
         public string TypeName { get; set; }
         public string? TypeNotes { get; set; }
         public string CompanyName { get; set; }
+
+
 
     }
 }
