@@ -1,11 +1,8 @@
-
 using Bill_system_API.IRepositories;
 using Bill_system_API.Models;
 using Bill_system_API.Repositories;
 using Microsoft.EntityFrameworkCore;
-using NuGet.Protocol.Plugins;
-using System.Text.Json.Serialization;
-using static System.Net.Mime.MediaTypeNames;
+using Bill_system_API.MappinigProfiles;
 using Type = Bill_system_API.Models.Type;
 
 namespace Bill_system_API
@@ -15,32 +12,42 @@ namespace Bill_system_API
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-            string txt = "";
+
             // Add services to the container.
-            builder.Services.AddDbContext<ApplicationDbContext>(op => op.UseLazyLoadingProxies().UseSqlServer(builder.Configuration.GetConnectionString("cslocal")));
-              //builder.Services.AddControllers().AddJsonOptions(x =>
-              //x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve);
-              //builder.Services.AddControllers();
-            builder.Services.AddControllers().AddNewtonsoftJson(op=>op.SerializerSettings.ReferenceLoopHandling=Newtonsoft.Json.ReferenceLoopHandling.Ignore);
+            builder.Services.AddDbContext<ApplicationDbContext>(op =>
+                op.UseLazyLoadingProxies().UseSqlServer(builder.Configuration.GetConnectionString("Alaa")));
+
+            builder.Services.AddControllers().AddNewtonsoftJson(op =>
+                op.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-
-
-
-
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            // Add CORS policy
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy(txt,
-                builder =>
+                options.AddPolicy("AllowAllOrigins", policy =>
                 {
-                    builder.AllowAnyOrigin();
-                    builder.AllowAnyMethod();
-                    builder.AllowAnyHeader();
+                    policy.AllowAnyOrigin()
+                          .AllowAnyMethod()
+                          .AllowAnyHeader();
                 });
             });
 
-            //Repository
+            // AutoMapper configuration
+            builder.Services.AddAutoMapper(cfg =>
+            {
+                cfg.AddProfile(new ItemProfile());
+                cfg.AddProfile(new CompanyProfile());
+                cfg.AddProfile(new UnitProfile());
+                cfg.AddProfile(new TypesProfile());
+            });
+
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+
+            // Register repositories
             var types = new[] { typeof(Client), typeof(Company), typeof(Employee), typeof(Invoice), typeof(InvoiceItem), typeof(Item), typeof(Type), typeof(Unit) };
             foreach (var type in types)
             {
@@ -48,7 +55,6 @@ namespace Bill_system_API
                 var implementationType = typeof(GenericRepository<>).MakeGenericType(type);
                 builder.Services.AddScoped(interfaceType, implementationType);
             }
-
 
             var app = builder.Build();
 
@@ -61,9 +67,12 @@ namespace Bill_system_API
 
             app.UseHttpsRedirection();
 
-            app.UseAuthorization();
+            app.UseRouting();
 
-            app.UseCors(txt);
+            // Use CORS
+            app.UseCors("AllowAllOrigins");
+
+            app.UseAuthorization();
 
             app.MapControllers();
 
