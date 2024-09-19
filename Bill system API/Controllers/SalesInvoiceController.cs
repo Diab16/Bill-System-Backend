@@ -27,6 +27,65 @@ namespace Bill_system_API.Controllers
             _employeeRepository = employeeRepository;
         }
 
+        [HttpGet]
+        public IActionResult GetAll()
+        {
+            try
+            {
+                var invoices = _invoiceRepository.GetAll();
+                return Ok(invoices);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("{id}")]
+        public IActionResult GetById(int id)
+        {
+            var invoice = _invoiceRepository.getById(id);
+            if (invoice == null)
+            {
+                return NotFound($"Invoice with ID {id} not found.");
+            }
+
+            var response = new
+            {
+                InvoiceId = invoice.Id,
+                BillNumber = invoice.BillNumber,
+                Date = invoice.Date,
+                StartTime = invoice.StartTime,
+                EndTime = invoice.EndTime,
+                Client = new
+                {
+                    Id = invoice.Client.Id,
+                    Name = invoice.Client.Name 
+                },
+                Employee = new
+                {
+                    Id = invoice.Employee.Id,
+                    Name = invoice.Employee.Name 
+                },
+                PercentageDiscount = invoice.PercentageDiscount,
+                ValueDiscount = invoice.ValueDiscount,
+                PaidUp = invoice.PaidUp,
+                InvoiceItems = invoice.InvoiceItems.Select(item => new
+                {
+                    ItemId = item.item.Id,
+                    SellingPrice = item.SellingPrice,
+                    Quantity = item.Quantity,
+                    Discount = item.Discount,
+                    TotalValue = item.TotalValue
+                }),
+                BillTotal = invoice.InvoiceItems.Sum(i => i.TotalValue),
+                NetTotal = invoice.InvoiceItems.Sum(i => i.TotalValue) - invoice.ValueDiscount - (invoice.PercentageDiscount / 100) * invoice.InvoiceItems.Sum(i => i.TotalValue),
+                TheRest = (invoice.InvoiceItems.Sum(i => i.TotalValue) - invoice.ValueDiscount - (invoice.PercentageDiscount / 100) * invoice.InvoiceItems.Sum(i => i.TotalValue)) - invoice.PaidUp
+            };
+
+            return Ok(response);
+        }
+
         [HttpPost]
         public IActionResult AddInvoice([FromBody] InvoiceDTO invoiceDTO)
         {
@@ -120,41 +179,6 @@ namespace Bill_system_API.Controllers
             return Ok(response);
         }
 
-
-
-
-        [HttpGet]
-        public IActionResult GetAll()
-        {
-            try
-            {
-                var invoices = _invoiceRepository.GetAll();
-                return Ok(invoices);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
-        }
-
-
-        // Delete Invoice (DELETE)
-        [HttpDelete("{id}")]
-        public IActionResult DeleteInvoice(int id)
-        {
-            var existingInvoice = _invoiceRepository.getById(id);
-            if (existingInvoice == null)
-            {
-                return NotFound($"Invoice with ID {id} not found.");
-            }
-
-            _invoiceRepository.delete(existingInvoice);
-            _invoiceRepository.save();
-
-            return NoContent();
-        }
-
-
         // Update Invoice (PUT)
         [HttpPut("{id}")]
         public IActionResult UpdateInvoice(int id, [FromBody] InvoiceDTO invoiceDTO)
@@ -247,7 +271,23 @@ namespace Bill_system_API.Controllers
             return Ok(response);
         }
 
-        //  method to generate the Bill Number
+        // Delete Invoice (DELETE)
+        [HttpDelete("{id}")]
+        public IActionResult DeleteInvoice(int id)
+        {
+            var existingInvoice = _invoiceRepository.getById(id);
+            if (existingInvoice == null)
+            {
+                return NotFound($"Invoice with ID {id} not found.");
+            }
+
+            _invoiceRepository.delete(existingInvoice);
+            _invoiceRepository.save();
+
+            return NoContent();
+        }
+
+        //method to generate the Bill Number
         private int GenerateBillNumber()
         {
             // Get the last invoice's BillNumber, if exists, and increment it.

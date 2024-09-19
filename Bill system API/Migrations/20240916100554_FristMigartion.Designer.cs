@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Bill_system_API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240912111723_changeidType")]
-    partial class changeidType
+    [Migration("20240916100554_FristMigartion")]
+    partial class FristMigartion
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -111,8 +111,17 @@ namespace Bill_system_API.Migrations
                     b.Property<TimeOnly>("EndTime")
                         .HasColumnType("time");
 
+                    b.Property<double>("PaidUp")
+                        .HasColumnType("float");
+
+                    b.Property<double>("PercentageDiscount")
+                        .HasColumnType("float");
+
                     b.Property<TimeOnly>("StartTime")
                         .HasColumnType("time");
+
+                    b.Property<double>("ValueDiscount")
+                        .HasColumnType("float");
 
                     b.HasKey("Id");
 

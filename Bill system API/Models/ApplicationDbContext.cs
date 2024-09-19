@@ -5,6 +5,14 @@ namespace Bill_system_API.Models
     public class ApplicationDbContext :DbContext
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
+
+        //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        //{
+        //    if (!optionsBuilder.IsConfigured)
+        //    {
+        //        optionsBuilder.UseLazyLoadingProxies();
+        //    }
+        //}
         public DbSet<Employee> Employees { get; set; }
         public DbSet<Client> Client { get; set; }
         public DbSet<Company> Companies { get; set; }
@@ -15,7 +23,16 @@ namespace Bill_system_API.Models
         public DbSet<Unit>Units  { get; set; }
 
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+             modelBuilder.Entity<Item>().HasKey(e => e.Id);
 
+        
+            base.OnModelCreating(modelBuilder);
+
+
+
+        }
 
     }
 }

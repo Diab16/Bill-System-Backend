@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Bill_system_API.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class FristMigartion : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -18,8 +18,8 @@ namespace Bill_system_API.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Phone = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Address = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Phone = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Address = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -54,20 +54,6 @@ namespace Bill_system_API.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Types",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Notes = table.Column<string>(type: "nvarchar(max)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Types", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Units",
                 columns: table => new
                 {
@@ -82,6 +68,27 @@ namespace Bill_system_API.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Types",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CompanyId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Types", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Types_Companies_CompanyId",
+                        column: x => x.CompanyId,
+                        principalTable: "Companies",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Invoices",
                 columns: table => new
                 {
@@ -91,8 +98,11 @@ namespace Bill_system_API.Migrations
                     Date = table.Column<DateOnly>(type: "date", nullable: false),
                     StartTime = table.Column<TimeOnly>(type: "time", nullable: false),
                     EndTime = table.Column<TimeOnly>(type: "time", nullable: false),
-                    ClientId = table.Column<int>(type: "int", nullable: false),
-                    EmployeeId = table.Column<int>(type: "int", nullable: false)
+                    ClientId = table.Column<int>(type: "int", nullable: true),
+                    EmployeeId = table.Column<int>(type: "int", nullable: true),
+                    PercentageDiscount = table.Column<double>(type: "float", nullable: false),
+                    ValueDiscount = table.Column<double>(type: "float", nullable: false),
+                    PaidUp = table.Column<double>(type: "float", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -101,21 +111,20 @@ namespace Bill_system_API.Migrations
                         name: "FK_Invoices_Client_ClientId",
                         column: x => x.ClientId,
                         principalTable: "Client",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Invoices_Employees_EmployeeId",
                         column: x => x.EmployeeId,
                         principalTable: "Employees",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
                 name: "Items",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     SellingPrice = table.Column<double>(type: "float", nullable: false),
                     BuyingPrice = table.Column<double>(type: "float", nullable: false),
@@ -133,19 +142,19 @@ namespace Bill_system_API.Migrations
                         column: x => x.CompanyId,
                         principalTable: "Companies",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.NoAction);
                     table.ForeignKey(
                         name: "FK_Items_Types_TypeId",
                         column: x => x.TypeId,
                         principalTable: "Types",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.NoAction);
                     table.ForeignKey(
                         name: "FK_Items_Units_UnitId",
                         column: x => x.UnitId,
                         principalTable: "Units",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.NoAction);
                 });
 
             migrationBuilder.CreateTable(
@@ -158,8 +167,8 @@ namespace Bill_system_API.Migrations
                     TotalValue = table.Column<double>(type: "float", nullable: false),
                     Quantity = table.Column<double>(type: "float", nullable: false),
                     Discount = table.Column<double>(type: "float", nullable: false),
-                    InvoiceId = table.Column<int>(type: "int", nullable: false),
-                    itemId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    InvoiceId = table.Column<int>(type: "int", nullable: true),
+                    itemId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -168,8 +177,7 @@ namespace Bill_system_API.Migrations
                         name: "FK_InvoiceItems_Invoices_InvoiceId",
                         column: x => x.InvoiceId,
                         principalTable: "Invoices",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_InvoiceItems_Items_itemId",
                         column: x => x.itemId,
@@ -211,6 +219,11 @@ namespace Bill_system_API.Migrations
                 name: "IX_Items_UnitId",
                 table: "Items",
                 column: "UnitId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Types_CompanyId",
+                table: "Types",
+                column: "CompanyId");
         }
 
         /// <inheritdoc />
@@ -232,13 +245,13 @@ namespace Bill_system_API.Migrations
                 name: "Employees");
 
             migrationBuilder.DropTable(
-                name: "Companies");
-
-            migrationBuilder.DropTable(
                 name: "Types");
 
             migrationBuilder.DropTable(
                 name: "Units");
+
+            migrationBuilder.DropTable(
+                name: "Companies");
         }
     }
 }
