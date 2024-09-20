@@ -134,7 +134,7 @@ namespace Bill_system_API.Controllers
             Item item = unitOfWork.Items.getById(id);
             if (item == null) return NotFound();
             ItemDto itemDto = mapper.Map<Item, ItemDto>(item); 
-            return Ok(itemDto);
+            return Ok(item);
         }
 
         [HttpDelete]
