@@ -55,32 +55,24 @@ namespace Bill_system_API.Controllers
                 InvoiceId = invoice.Id,
                 BillNumber = invoice.BillNumber,
                 Date = invoice.Date,
-                StartTime = invoice.StartTime,
-                EndTime = invoice.EndTime,
                 Client = new
                 {
                     Id = invoice.Client.Id,
                     Name = invoice.Client.Name 
                 },
-                Employee = new
-                {
-                    Id = invoice.Employee.Id,
-                    Name = invoice.Employee.Name 
-                },
+
                 PercentageDiscount = invoice.PercentageDiscount,
-                ValueDiscount = invoice.ValueDiscount,
                 PaidUp = invoice.PaidUp,
                 InvoiceItems = invoice.InvoiceItems.Select(item => new
                 {
                     ItemId = item.item.Id,
                     SellingPrice = item.SellingPrice,
                     Quantity = item.Quantity,
-                    Discount = item.Discount,
                     TotalValue = item.TotalValue
                 }),
                 BillTotal = invoice.InvoiceItems.Sum(i => i.TotalValue),
-                NetTotal = invoice.InvoiceItems.Sum(i => i.TotalValue) - invoice.ValueDiscount - (invoice.PercentageDiscount / 100) * invoice.InvoiceItems.Sum(i => i.TotalValue),
-                TheRest = (invoice.InvoiceItems.Sum(i => i.TotalValue) - invoice.ValueDiscount - (invoice.PercentageDiscount / 100) * invoice.InvoiceItems.Sum(i => i.TotalValue)) - invoice.PaidUp
+                NetTotal = invoice.InvoiceItems.Sum(i => i.TotalValue) - (invoice.PercentageDiscount / 100) * invoice.InvoiceItems.Sum(i => i.TotalValue),
+                TheRest = (invoice.InvoiceItems.Sum(i => i.TotalValue) - (invoice.PercentageDiscount / 100) * invoice.InvoiceItems.Sum(i => i.TotalValue)) - invoice.PaidUp
             };
 
             return Ok(response);
@@ -95,36 +87,22 @@ namespace Bill_system_API.Controllers
                 return BadRequest("Date is required");
             }
 
-            // Validate Start Time and End Time
-            if (invoiceDTO.EndTime <= invoiceDTO.StartTime)
-            {
-                return BadRequest("End Time must be greater than Start Time");
-            }
 
             // Validate Client and Employee
             var client = _clientRepository.getById(invoiceDTO.ClientId);
-            var employee = _employeeRepository.getById(invoiceDTO.EmployeeId);
-
             if (client == null)
             {
                 return BadRequest("Invalid Client ID");
-            }
-            if (employee == null)
-            {
-                return BadRequest("Invalid Employee ID");
             }
 
             // Create a new Invoice
             Invoice invoice = new Invoice
             {
-                BillNumber = GenerateBillNumber(),
+                BillTotal = invoiceDTO.BillTotal,
+                BillNumber = invoiceDTO.BillNumber,
                 Date = DateOnly.FromDateTime(invoiceDTO.Date),
-                StartTime = TimeOnly.FromDateTime(DateTime.Today.Add(invoiceDTO.StartTime)),
-                EndTime = TimeOnly.FromDateTime(DateTime.Today.Add(invoiceDTO.EndTime)),
                 Client = client,
-                Employee = employee,
                 PercentageDiscount = invoiceDTO.PercentageDiscount,
-                ValueDiscount = invoiceDTO.ValueDiscount,
                 PaidUp = invoiceDTO.PaidUp,
                 InvoiceItems = new List<InvoiceItem>()
             };
@@ -145,13 +123,12 @@ namespace Bill_system_API.Controllers
                 }
 
                 // Calculate TotalValue for each item
-                double totalValue = (itemDto.SellingPrice * itemDto.Quantity) - itemDto.Discount;
+                double totalValue = (itemDto.SellingPrice * itemDto.Quantity);
                 var invoiceItem = new InvoiceItem
                 {
                     item = item,
                     SellingPrice = itemDto.SellingPrice,
                     Quantity = itemDto.Quantity,
-                    Discount = itemDto.Discount,
                     TotalValue = totalValue,
                     Invoice = invoice
                 };
@@ -160,7 +137,7 @@ namespace Bill_system_API.Controllers
 
             // Calculate Derived Attributes
             double billTotal = invoice.InvoiceItems.Sum(i => i.TotalValue);
-            double netTotal = billTotal - invoice.ValueDiscount - (invoice.PercentageDiscount / 100) * billTotal;
+            double netTotal = billTotal - (invoice.PercentageDiscount / 100) * billTotal;
             double theRest = netTotal - invoice.PaidUp;
 
             // Save the Invoice
@@ -195,33 +172,21 @@ namespace Bill_system_API.Controllers
                 return BadRequest("Date is required");
             }
 
-            // Validate Start Time and End Time
-            if (invoiceDTO.EndTime <= invoiceDTO.StartTime)
-            {
-                return BadRequest("End Time must be greater than Start Time");
-            }
 
             // Validate Client and Employee
             var client = _clientRepository.getById(invoiceDTO.ClientId);
-            var employee = _employeeRepository.getById(invoiceDTO.EmployeeId);
             if (client == null)
             {
                 return BadRequest("Invalid Client ID");
             }
-            if (employee == null)
-            {
-                return BadRequest("Invalid Employee ID");
-            }
+
 
             // Update invoice properties
             existingInvoice.Date = DateOnly.FromDateTime(invoiceDTO.Date);
-            existingInvoice.StartTime = TimeOnly.FromDateTime(DateTime.Today.Add(invoiceDTO.StartTime));
-            existingInvoice.EndTime = TimeOnly.FromDateTime(DateTime.Today.Add(invoiceDTO.EndTime));
             existingInvoice.Client = client;
-            existingInvoice.Employee = employee;
             existingInvoice.PercentageDiscount = invoiceDTO.PercentageDiscount;
-            existingInvoice.ValueDiscount = invoiceDTO.ValueDiscount;
             existingInvoice.PaidUp = invoiceDTO.PaidUp;
+            existingInvoice.BillTotal = invoiceDTO.BillTotal;
 
             // Update Invoice Items
             existingInvoice.InvoiceItems.Clear();
@@ -238,13 +203,12 @@ namespace Bill_system_API.Controllers
                     return BadRequest("Quantity must be greater than zero");
                 }
 
-                double totalValue = (itemDto.SellingPrice * itemDto.Quantity) - itemDto.Discount;
+                double totalValue = (itemDto.SellingPrice * itemDto.Quantity);
                 var invoiceItem = new InvoiceItem
                 {
                     item = item,
                     SellingPrice = itemDto.SellingPrice,
                     Quantity = itemDto.Quantity,
-                    Discount = itemDto.Discount,
                     TotalValue = totalValue,
                     Invoice = existingInvoice
                 };
@@ -253,7 +217,7 @@ namespace Bill_system_API.Controllers
 
             // Calculate Derived Attributes
             double billTotal = existingInvoice.InvoiceItems.Sum(i => i.TotalValue);
-            double netTotal = billTotal - existingInvoice.ValueDiscount - (existingInvoice.PercentageDiscount / 100) * billTotal;
+            double netTotal = billTotal - (existingInvoice.PercentageDiscount / 100) * billTotal;
             double theRest = netTotal - existingInvoice.PaidUp;
 
             // Save the updated invoice
@@ -287,13 +251,7 @@ namespace Bill_system_API.Controllers
             return NoContent();
         }
 
-        //method to generate the Bill Number
-        private int GenerateBillNumber()
-        {
-            // Get the last invoice's BillNumber, if exists, and increment it.
-            var lastInvoice = _invoiceRepository.GetAll().OrderByDescending(i => i.BillNumber).FirstOrDefault();
-            return lastInvoice != null ? lastInvoice.BillNumber + 1 : 1;
-        }
+ 
     }
 
 }
