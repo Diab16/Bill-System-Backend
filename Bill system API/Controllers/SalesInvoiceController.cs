@@ -14,17 +14,20 @@ namespace Bill_system_API.Controllers
         private readonly IGenericRepository<Item> _itemRepository;
         private readonly IGenericRepository<Client> _clientRepository;
         private readonly IGenericRepository<Employee> _employeeRepository;
+        private readonly IGenericRepository<InvoiceItem> _invoiceItemRepository;
 
         public SalesInvoiceController(
             IGenericRepository<Invoice> invoiceRepository,
             IGenericRepository<Item> itemRepository,
             IGenericRepository<Client> clientRepository,
-            IGenericRepository<Employee> employeeRepository)
+            IGenericRepository<Employee> employeeRepository,
+            IGenericRepository<InvoiceItem> invoiceItemRepository)
         {
             _invoiceRepository = invoiceRepository;
             _itemRepository = itemRepository;
             _clientRepository = clientRepository;
             _employeeRepository = employeeRepository;
+            _invoiceItemRepository = invoiceItemRepository;
         }
 
         [HttpGet]
@@ -40,6 +43,8 @@ namespace Bill_system_API.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+
+        
 
         [HttpGet("{id}")]
         public IActionResult GetById(int id)
@@ -58,7 +63,7 @@ namespace Bill_system_API.Controllers
                 Client = new
                 {
                     Id = invoice.Client.Id,
-                    Name = invoice.Client.Name 
+                    Name = invoice.Client.Name
                 },
 
                 PercentageDiscount = invoice.PercentageDiscount,
@@ -66,13 +71,14 @@ namespace Bill_system_API.Controllers
                 InvoiceItems = invoice.InvoiceItems.Select(item => new
                 {
                     ItemId = item.item.Id,
+                    Name = item.item.Name,
                     SellingPrice = item.SellingPrice,
                     Quantity = item.Quantity,
                     TotalValue = item.TotalValue
                 }),
                 BillTotal = invoice.InvoiceItems.Sum(i => i.TotalValue),
                 NetTotal = invoice.InvoiceItems.Sum(i => i.TotalValue) - (invoice.PercentageDiscount / 100) * invoice.InvoiceItems.Sum(i => i.TotalValue),
-                TheRest = (invoice.InvoiceItems.Sum(i => i.TotalValue) - (invoice.PercentageDiscount / 100) * invoice.InvoiceItems.Sum(i => i.TotalValue)) - invoice.PaidUp
+                TheRest = invoice.PaidUp - (invoice.InvoiceItems.Sum(i => i.TotalValue) - (invoice.PercentageDiscount / 100) * invoice.InvoiceItems.Sum(i => i.TotalValue))
             };
 
             return Ok(response);
@@ -127,6 +133,7 @@ namespace Bill_system_API.Controllers
                 var invoiceItem = new InvoiceItem
                 {
                     item = item,
+                    Name = item.Name,
                     SellingPrice = itemDto.SellingPrice,
                     Quantity = itemDto.Quantity,
                     TotalValue = totalValue,
@@ -138,7 +145,7 @@ namespace Bill_system_API.Controllers
             // Calculate Derived Attributes
             double billTotal = invoice.InvoiceItems.Sum(i => i.TotalValue);
             double netTotal = billTotal - (invoice.PercentageDiscount / 100) * billTotal;
-            double theRest = netTotal - invoice.PaidUp;
+            double theRest = invoice.PaidUp - netTotal;
 
             // Save the Invoice
             _invoiceRepository.add(invoice);
@@ -207,6 +214,7 @@ namespace Bill_system_API.Controllers
                 var invoiceItem = new InvoiceItem
                 {
                     item = item,
+                    Name = item.Name,
                     SellingPrice = itemDto.SellingPrice,
                     Quantity = itemDto.Quantity,
                     TotalValue = totalValue,
@@ -218,7 +226,7 @@ namespace Bill_system_API.Controllers
             // Calculate Derived Attributes
             double billTotal = existingInvoice.InvoiceItems.Sum(i => i.TotalValue);
             double netTotal = billTotal - (existingInvoice.PercentageDiscount / 100) * billTotal;
-            double theRest = netTotal - existingInvoice.PaidUp;
+            double theRest = existingInvoice.PaidUp - netTotal;
 
             // Save the updated invoice
             _invoiceRepository.update(existingInvoice);
@@ -243,6 +251,11 @@ namespace Bill_system_API.Controllers
             if (existingInvoice == null)
             {
                 return NotFound($"Invoice with ID {id} not found.");
+            }
+            var relatedItems = _invoiceItemRepository.GetAll().Where(i => i.Invoice.Id == id).ToList();
+            foreach (var item in relatedItems)
+            {
+                _invoiceItemRepository.delete(item);
             }
 
             _invoiceRepository.delete(existingInvoice);
