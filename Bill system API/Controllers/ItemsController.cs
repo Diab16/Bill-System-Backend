@@ -22,8 +22,14 @@ namespace Bill_system_API.Controllers
             this.mapper = mapper;
             this.unitOfWork = unitOfWork;
         }
-
-
+        // Get Amount by Id
+        [HttpGet("GetAmountById/{id}")]
+        public IActionResult GetAmountById(int id)
+        {
+            Item item = unitOfWork.Items.getById(id);
+            if (item == null) return NotFound();
+            return Ok(item.AvailableAmount);
+        }
         // GET method to retrieve data for the form
         [HttpGet("FormData")]
         public ActionResult<ItemDto> GetRelatedData()
@@ -151,7 +157,6 @@ namespace Bill_system_API.Controllers
 
 
         [HttpPut]
-        
         public ActionResult<ItemDto> EditItem([FromBody] ItemDto itemDto)
         {
             if (itemDto.Id == 0) return BadRequest("Invalid ID.");
@@ -168,6 +173,26 @@ namespace Bill_system_API.Controllers
                 unitOfWork.Items.update(itemMapped);
                 unitOfWork.Complete();
                 return Ok(itemMapped);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+        [HttpPut("{id}/{amount}")]
+        public ActionResult<ItemDto> EditAmountById( int id , int amount)
+        {
+            if (id == 0) return BadRequest("Invalid ID.");
+
+            if (amount < 0) return BadRequest("Invalid Amount.");
+
+            try
+            {
+                Item itemFromDB = unitOfWork.Items.getById(id);
+                itemFromDB.AvailableAmount = amount;
+                unitOfWork.Items.update(itemFromDB);
+                unitOfWork.Complete();
+                return Ok(itemFromDB);
             }
             catch (Exception ex)
             {
