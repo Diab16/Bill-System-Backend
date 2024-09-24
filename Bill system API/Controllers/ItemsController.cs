@@ -34,19 +34,21 @@ namespace Bill_system_API.Controllers
         [HttpGet("FormData")]
         public ActionResult<ItemDto> GetRelatedData()
         {
-            var companies = unitOfWork.Companies.GetAll()
-                .Select(c => new ItemCompanyDto
-                {
-                    Id = c.Id,
-                    Name = c.Name
-                }).ToList();
+           
 
-            var types = unitOfWork.Types.GetAll()
-                .Select(t => new itemTypeDto
-                {
-                    Id = t.Id,
-                    Name = t.Name
-                }).ToList();
+            var companies = unitOfWork.Companies.GetAll()
+           .Select(c => new ItemCompanyDto
+           {
+           Id = c.Id,
+           Name = c.Name,
+           Types = c.Types.Select(t => new itemTypeDto
+           {
+               Id = t.Id,
+               Name = t.Name
+           }).ToList() // Include related types for each company
+           }).ToList();
+
+     
 
             var units = unitOfWork.Units.GetAll()
                 .Select(u => new itemUnitDto
@@ -58,7 +60,6 @@ namespace Bill_system_API.Controllers
             var formDto = new FormDto
             {
                 Companies = companies,
-                Types =types,
                 Units = units
             };
 
@@ -134,7 +135,7 @@ namespace Bill_system_API.Controllers
         }
 
 
-        [HttpGet("GetById")]
+        [HttpGet("GetById/{id}")]
         public ActionResult<Item> GetItemById(int id)
         {
             Item item = unitOfWork.Items.getById(id);
@@ -143,7 +144,7 @@ namespace Bill_system_API.Controllers
             return Ok(item);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
        public ActionResult<Item> DeleteItem(int id )
         {
             Item item = unitOfWork.Items.getById(id);
