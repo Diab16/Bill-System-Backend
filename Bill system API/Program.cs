@@ -15,7 +15,7 @@ namespace Bill_system_API
 
             // Add services to the container.
             builder.Services.AddDbContext<ApplicationDbContext>(op =>
-                op.UseLazyLoadingProxies().UseSqlServer(builder.Configuration.GetConnectionString("cslocal")));
+                op.UseLazyLoadingProxies().UseSqlServer(builder.Configuration.GetConnectionString("Alaa")));
 
             builder.Services.AddControllers().AddNewtonsoftJson(op =>
                 op.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
