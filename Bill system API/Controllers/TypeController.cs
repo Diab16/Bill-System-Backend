@@ -60,6 +60,34 @@ namespace Bill_system_API.Controllers
             return Ok(typeDTO);
         }
 
+        [HttpGet("GetTypesByCompanyName")]
+        public IActionResult GetTypesByCompanyName(string companyName)
+        {
+            
+
+            if (companyName == null || companyName == "")
+            {
+                return BadRequest(new { message = "Company Name Invalid" });
+            }
+            // Fetch the type with the related company
+            var types = _typeRepository.GetAll().Where(t => t.Company.Name.ToUpper() == companyName.ToUpper()).ToList();
+            List<TypeDTO> typesDTO = new List<TypeDTO>();
+            foreach ( var type in types)
+            {
+                var typeDTO = new TypeDTO
+                {
+                    TypeId = type.Id,
+                    TypeName = type.Name,
+                    TypeNotes = type.Notes,
+                    CompanyName = type.Company.Name // Access the Company name
+                };
+                typesDTO.Add(typeDTO);
+            }
+            
+
+            return Ok(typesDTO);
+        }
+
         [HttpPost]
         public IActionResult AddType([FromBody] TypeDTO typeDto)
         {
@@ -71,10 +99,10 @@ namespace Bill_system_API.Controllers
             }
 
             // Check if a type with the same name already exists
-            var existingType = _typeRepository.GetAll().FirstOrDefault(t => t.Name == typeDto.TypeName);
+            var existingType = _typeRepository.GetAll().FirstOrDefault(t => t.Name == typeDto.TypeName && t.Company.Name == typeDto.CompanyName);
             if (existingType != null)
             {
-                return BadRequest(new { message = "TYPE NAME has already existed before" });
+                return BadRequest(new { message = $"TYPE NAME has already existed in Company: {existingType.Company.Name} before" });
             }
 
             // Create a new Type entity and map the data from TypeDTO
@@ -108,10 +136,10 @@ namespace Bill_system_API.Controllers
             }
 
             // Check for duplicate type name, excluding the current type
-            var duplicateType = _typeRepository.GetAll().FirstOrDefault(t => t.Name == typeDto.TypeName && t.Id != id);
+            var duplicateType = _typeRepository.GetAll().FirstOrDefault(t => t.Name == typeDto.TypeName && t.Id != id && t.Company.Name.ToLower() == typeDto.CompanyName.ToLower());
             if (duplicateType != null)
             {
-                return BadRequest(new { message = "Another type with the same name already exists" });
+                return BadRequest(new { message = "Another type with the same name and company already exists" });
             }
 
             // Update the existing type
