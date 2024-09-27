@@ -8,7 +8,7 @@ namespace Bill_system_API.MappinigProfiles
     {
         public UnitProfile()
         {
-            CreateMap<UnitDto,Unit>().ReverseMap();
+            //CreateMap<UnitDto,Unit>().ReverseMap();
         }
     }
 }
