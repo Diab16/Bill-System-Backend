@@ -22,25 +22,33 @@ namespace Bill_system_API.Controllers
             this.mapper = mapper;
             this.unitOfWork = unitOfWork;
         }
-
-
+        // Get Amount by Id
+        [HttpGet("GetAmountById/{id}")]
+        public IActionResult GetAmountById(int id)
+        {
+            Item item = unitOfWork.Items.getById(id);
+            if (item == null) return NotFound();
+            return Ok(item.AvailableAmount);
+        }
         // GET method to retrieve data for the form
         [HttpGet("FormData")]
         public ActionResult<ItemDto> GetRelatedData()
         {
-            var companies = unitOfWork.Companies.GetAll()
-                .Select(c => new ItemCompanyDto
-                {
-                    Id = c.Id,
-                    Name = c.Name
-                }).ToList();
+           
 
-            var types = unitOfWork.Types.GetAll()
-                .Select(t => new itemTypeDto
-                {
-                    Id = t.Id,
-                    Name = t.Name
-                }).ToList();
+            var companies = unitOfWork.Companies.GetAll()
+           .Select(c => new ItemCompanyDto
+           {
+           Id = c.Id,
+           Name = c.Name,
+           Types = c.Types.Select(t => new itemTypeDto
+           {
+               Id = t.Id,
+               Name = t.Name
+           }).ToList() // Include related types for each company
+           }).ToList();
+
+     
 
             var units = unitOfWork.Units.GetAll()
                 .Select(u => new itemUnitDto
@@ -52,7 +60,6 @@ namespace Bill_system_API.Controllers
             var formDto = new FormDto
             {
                 Companies = companies,
-                Types =types,
                 Units = units
             };
 
@@ -128,16 +135,16 @@ namespace Bill_system_API.Controllers
         }
 
 
-        [HttpGet("GetById")]
+        [HttpGet("GetById/{id}")]
         public ActionResult<Item> GetItemById(int id)
         {
             Item item = unitOfWork.Items.getById(id);
             if (item == null) return NotFound();
             ItemDto itemDto = mapper.Map<Item, ItemDto>(item); 
-            return Ok(itemDto);
+            return Ok(item);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
        public ActionResult<Item> DeleteItem(int id )
         {
             Item item = unitOfWork.Items.getById(id);
@@ -151,7 +158,6 @@ namespace Bill_system_API.Controllers
 
 
         [HttpPut]
-        
         public ActionResult<ItemDto> EditItem([FromBody] ItemDto itemDto)
         {
             if (itemDto.Id == 0) return BadRequest("Invalid ID.");
@@ -168,6 +174,26 @@ namespace Bill_system_API.Controllers
                 unitOfWork.Items.update(itemMapped);
                 unitOfWork.Complete();
                 return Ok(itemMapped);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+        [HttpPut("{id}/{amount}")]
+        public ActionResult<ItemDto> EditAmountById( int id , int amount)
+        {
+            if (id == 0) return BadRequest("Invalid ID.");
+
+            if (amount < 0) return BadRequest("Invalid Amount.");
+
+            try
+            {
+                Item itemFromDB = unitOfWork.Items.getById(id);
+                itemFromDB.AvailableAmount = amount;
+                unitOfWork.Items.update(itemFromDB);
+                unitOfWork.Complete();
+                return Ok(itemFromDB);
             }
             catch (Exception ex)
             {

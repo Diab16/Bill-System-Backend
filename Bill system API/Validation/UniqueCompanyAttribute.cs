@@ -12,19 +12,30 @@ namespace Bill_system_API.Validation
             // the name that we gonna make check on 
 
             string? companyName = value?.ToString();
+            Company? companyFromReq = validationContext.ObjectInstance as Company;
 
 
             // get Course  from the requst 
             var db = (ApplicationDbContext)validationContext.GetService(typeof(ApplicationDbContext));
 
-
             // get the course from dbcontext and compare
 
-            //  InitialCompanyContext context = new InitialCompanyContext();
-            Company? companyFromDb = db.Companies.FirstOrDefault(c => c.Name == companyName);
+            if (companyFromReq.Id == 0)
+            {
+                Company? companyFromDb = db.Companies.FirstOrDefault(c => c.Name == companyName);
 
-            if (companyFromDb == null) return ValidationResult.Success;
-            else return new ValidationResult($"{companyName} Already Exists in Company Names , Enter Different Name!");
+                if (companyFromDb == null) return ValidationResult.Success;
+                else return new ValidationResult($"{companyName} Already Exists in Company Names , Enter Different Name!");
+            }
+            else
+            {
+                Company? companyFromDb = db.Companies.FirstOrDefault(c => c.Name == companyName && c.Id != companyFromReq.Id);
+
+                if (companyFromDb == null) return ValidationResult.Success;
+                else return new ValidationResult($"{companyName} Already Exists in Company Names , Enter Different Name!");
+            }
+
+            
         }
     }
 }
