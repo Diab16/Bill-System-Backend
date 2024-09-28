@@ -1,6 +1,7 @@
 ﻿using Bill_system_API.DTOs;
 using Bill_system_API.IRepositories;
 using Bill_system_API.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.DotNet.Scaffolding.Shared.Project;
@@ -40,6 +41,8 @@ namespace Bill_system_API.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize]
+
         public IActionResult GetTypeById(int id)
         {
             // Fetch the type with the related company
@@ -61,6 +64,7 @@ namespace Bill_system_API.Controllers
         }
 
         [HttpGet("GetTypesByCompanyName")]
+
         public IActionResult GetTypesByCompanyName(string companyName)
         {
             
@@ -89,6 +93,8 @@ namespace Bill_system_API.Controllers
         }
 
         [HttpPost]
+        [Authorize]
+
         public IActionResult AddType([FromBody] TypeDTO typeDto)
         {
             // Check if the company exists
@@ -121,6 +127,8 @@ namespace Bill_system_API.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize]
+
         public IActionResult UpdateType(int id, [FromBody] TypeDTO typeDto)
         {
             var existingType = _typeRepository.getById(id);
@@ -154,6 +162,8 @@ namespace Bill_system_API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize]
+
         public IActionResult DeleteType(int id)
         {
             var existingType = _typeRepository.getById(id);

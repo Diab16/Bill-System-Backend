@@ -2,6 +2,7 @@
 using Bill_system_API.DTOs;
 using Bill_system_API.IRepositories;
 using Bill_system_API.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -36,6 +37,8 @@ namespace Bill_system_API.Controllers
         
 
         [HttpGet("{id}")]
+        [Authorize]
+
         public IActionResult GetById(int id)
         {
             var invoice = unitOfWork.Invoices.getById(id);
@@ -74,6 +77,8 @@ namespace Bill_system_API.Controllers
         }
 
         [HttpPost]
+        [Authorize]
+
         public IActionResult AddInvoice([FromBody] InvoiceDTO invoiceDTO)
         {
             // Validate Date
@@ -153,6 +158,8 @@ namespace Bill_system_API.Controllers
         }
 
         // Update Invoice (PUT)
+        [Authorize]
+
         [HttpPut("{id}")]
         public IActionResult UpdateInvoice(int id, [FromBody] InvoiceDTO invoiceDTO)
         {
@@ -233,6 +240,8 @@ namespace Bill_system_API.Controllers
         }
 
         // Delete Invoice (DELETE)
+        [Authorize]
+
         [HttpDelete("{id}")]
         public IActionResult DeleteInvoice(int id)
         {

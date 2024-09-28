@@ -9,6 +9,7 @@ using Bill_system_API.Models;
 using AutoMapper;
 using Bill_system_API.IRepositories;
 using Bill_system_API.DTOs;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Bill_system_API.Controllers
 {
@@ -46,6 +47,8 @@ namespace Bill_system_API.Controllers
         }
 
         // PUT: api/Company/5
+        [Authorize]
+
         [HttpPut("{id}")]
         public IActionResult PutCompany(int id, CompanyDTO companyDTO)
         {
@@ -67,6 +70,8 @@ namespace Bill_system_API.Controllers
         }
 
         // POST: api/Company
+        [Authorize]
+
         [HttpPost]
         public ActionResult<CompanyDTO> PostCompany(CompanyDTO companyDTO)
         {
@@ -81,6 +86,8 @@ namespace Bill_system_API.Controllers
         }
 
         // DELETE: api/Company/5
+        [Authorize]
+
         [HttpDelete("{id}")]
         public IActionResult DeleteCompany(int id)
         {
