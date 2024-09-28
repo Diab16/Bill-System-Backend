@@ -1,4 +1,5 @@
-﻿using Bill_system_API.DTOs;
+﻿using AutoMapper;
+using Bill_system_API.DTOs;
 using Bill_system_API.IRepositories;
 using Bill_system_API.Models;
 using Microsoft.AspNetCore.Http;
@@ -10,32 +11,20 @@ namespace Bill_system_API.Controllers
     [ApiController]
     public class SalesInvoiceController : ControllerBase
     {
-        private readonly IGenericRepository<Invoice> _invoiceRepository;
-        private readonly IGenericRepository<Item> _itemRepository;
-        private readonly IGenericRepository<Client> _clientRepository;
-        private readonly IGenericRepository<Employee> _employeeRepository;
-        private readonly IGenericRepository<InvoiceItem> _invoiceItemRepository;
-
-        public SalesInvoiceController(
-            IGenericRepository<Invoice> invoiceRepository,
-            IGenericRepository<Item> itemRepository,
-            IGenericRepository<Client> clientRepository,
-            IGenericRepository<Employee> employeeRepository,
-            IGenericRepository<InvoiceItem> invoiceItemRepository)
+        private readonly IMapper mapper;
+        private readonly IUnitOfWork unitOfWork;
+        public SalesInvoiceController(IMapper mapper, IUnitOfWork unitOfWork)
         {
-            _invoiceRepository = invoiceRepository;
-            _itemRepository = itemRepository;
-            _clientRepository = clientRepository;
-            _employeeRepository = employeeRepository;
-            _invoiceItemRepository = invoiceItemRepository;
+            this.mapper = mapper;
+            this.unitOfWork = unitOfWork;
         }
 
         [HttpGet]
-        public IActionResult GetAll()
+        public ActionResult<InvoiceDTO> GetAll()
         {
             try
             {
-                var invoices = _invoiceRepository.GetAll();
+                var invoices = unitOfWork.Invoices.GetAll().ToList();
                 return Ok(invoices);
             }
             catch (Exception ex)
@@ -49,7 +38,7 @@ namespace Bill_system_API.Controllers
         [HttpGet("{id}")]
         public IActionResult GetById(int id)
         {
-            var invoice = _invoiceRepository.getById(id);
+            var invoice = unitOfWork.Invoices.getById(id);
             if (invoice == null)
             {
                 return NotFound($"Invoice with ID {id} not found.");
@@ -95,7 +84,7 @@ namespace Bill_system_API.Controllers
 
 
             // Validate Client and Employee
-            var client = _clientRepository.getById(invoiceDTO.ClientId);
+            var client = unitOfWork.Clients.getById(invoiceDTO.ClientId);
             if (client == null)
             {
                 return BadRequest("Invalid Client ID");
@@ -116,7 +105,7 @@ namespace Bill_system_API.Controllers
             // Add Invoice Items and Validate each item
             foreach (var itemDto in invoiceDTO.InvoiceItems)
             {
-                var item = _itemRepository.getById(itemDto.ItemId);
+                var item = unitOfWork.Items.getById(itemDto.ItemId);
                 if (item == null)
                 {
                     return BadRequest($"Item with ID {itemDto.ItemId} not found");
@@ -148,8 +137,8 @@ namespace Bill_system_API.Controllers
             double theRest = invoice.PaidUp - netTotal;
 
             // Save the Invoice
-            _invoiceRepository.add(invoice);
-            _invoiceRepository.save();
+            unitOfWork.Invoices.add(invoice);
+            unitOfWork.Complete();
 
             // Return the calculated fields to the frontend
             var response = new
@@ -167,7 +156,7 @@ namespace Bill_system_API.Controllers
         [HttpPut("{id}")]
         public IActionResult UpdateInvoice(int id, [FromBody] InvoiceDTO invoiceDTO)
         {
-            var existingInvoice = _invoiceRepository.getById(id);
+            var existingInvoice = unitOfWork.Invoices.getById(id);
             if (existingInvoice == null)
             {
                 return NotFound($"Invoice with ID {id} not found.");
@@ -181,7 +170,7 @@ namespace Bill_system_API.Controllers
 
 
             // Validate Client and Employee
-            var client = _clientRepository.getById(invoiceDTO.ClientId);
+            var client = unitOfWork.Clients.getById(invoiceDTO.ClientId);
             if (client == null)
             {
                 return BadRequest("Invalid Client ID");
@@ -199,7 +188,7 @@ namespace Bill_system_API.Controllers
             existingInvoice.InvoiceItems.Clear();
             foreach (var itemDto in invoiceDTO.InvoiceItems)
             {
-                var item = _itemRepository.getById(itemDto.ItemId);
+                var item = unitOfWork.Items.getById(itemDto.ItemId);
                 if (item == null)
                 {
                     return BadRequest($"Item with ID {itemDto.ItemId} not found");
@@ -229,8 +218,8 @@ namespace Bill_system_API.Controllers
             double theRest = existingInvoice.PaidUp - netTotal;
 
             // Save the updated invoice
-            _invoiceRepository.update(existingInvoice);
-            _invoiceRepository.save();
+            unitOfWork.Invoices.update(existingInvoice);
+            unitOfWork.Complete();
 
             var response = new
             {
@@ -247,20 +236,19 @@ namespace Bill_system_API.Controllers
         [HttpDelete("{id}")]
         public IActionResult DeleteInvoice(int id)
         {
-            var existingInvoice = _invoiceRepository.getById(id);
+            var existingInvoice = unitOfWork.Invoices.getById(id);
             if (existingInvoice == null)
             {
                 return NotFound($"Invoice with ID {id} not found.");
             }
-            var relatedItems = _invoiceItemRepository.GetAll().Where(i => i.Invoice.Id == id).ToList();
+            var relatedItems = unitOfWork.InvoiceItems.GetAll().Where(i => i.Invoice.Id == id).ToList();
             foreach (var item in relatedItems)
             {
-                _invoiceItemRepository.delete(item);
+                unitOfWork.InvoiceItems.delete(item);
             }
 
-            _invoiceRepository.delete(existingInvoice);
-            _invoiceRepository.save();
-
+            unitOfWork.Invoices.delete(existingInvoice);
+            unitOfWork.Complete();
             return NoContent();
         }
 

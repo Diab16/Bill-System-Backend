@@ -45,7 +45,7 @@ namespace Bill_system_API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Client");
+                    b.ToTable("Client", (string)null);
                 });
 
             modelBuilder.Entity("Bill_system_API.Models.Company", b =>
@@ -65,7 +65,7 @@ namespace Bill_system_API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Companies");
+                    b.ToTable("Companies", (string)null);
                 });
 
             modelBuilder.Entity("Bill_system_API.Models.Employee", b =>
@@ -82,7 +82,7 @@ namespace Bill_system_API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Employees");
+                    b.ToTable("Employees", (string)null);
                 });
 
             modelBuilder.Entity("Bill_system_API.Models.Invoice", b =>
@@ -120,7 +120,7 @@ namespace Bill_system_API.Migrations
 
                     b.HasIndex("EmployeeId");
 
-                    b.ToTable("Invoices");
+                    b.ToTable("Invoices", (string)null);
                 });
 
             modelBuilder.Entity("Bill_system_API.Models.InvoiceItem", b =>
@@ -155,7 +155,7 @@ namespace Bill_system_API.Migrations
 
                     b.HasIndex("itemId");
 
-                    b.ToTable("InvoiceItems");
+                    b.ToTable("InvoiceItems", (string)null);
                 });
 
             modelBuilder.Entity("Bill_system_API.Models.Item", b =>
@@ -199,7 +199,7 @@ namespace Bill_system_API.Migrations
 
                     b.HasIndex("UnitId");
 
-                    b.ToTable("Items");
+                    b.ToTable("Items", (string)null);
                 });
 
             modelBuilder.Entity("Bill_system_API.Models.Type", b =>
@@ -224,7 +224,7 @@ namespace Bill_system_API.Migrations
 
                     b.HasIndex("CompanyId");
 
-                    b.ToTable("Types");
+                    b.ToTable("Types", (string)null);
                 });
 
             modelBuilder.Entity("Bill_system_API.Models.Unit", b =>
@@ -244,7 +244,7 @@ namespace Bill_system_API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Units");
+                    b.ToTable("Units", (string)null);
                 });
 
             modelBuilder.Entity("Bill_system_API.Models.Invoice", b =>
