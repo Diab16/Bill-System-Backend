@@ -45,6 +45,7 @@ namespace Bill_system_API
                 cfg.AddProfile(new TypesProfile());
                 cfg.AddProfile(new ClientProfile());
                 cfg.AddProfile(new InvoiceProfile());
+                cfg.AddProfile(new Invoiceitemprofile());
             });
 
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();

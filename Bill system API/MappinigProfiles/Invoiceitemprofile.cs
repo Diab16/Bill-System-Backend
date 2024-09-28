@@ -4,12 +4,14 @@ using Bill_system_API.Models;
 
 namespace Bill_system_API.MappinigProfiles
 {
-    public class InvoiceProfile:Profile
+    public class Invoiceitemprofile :Profile
     {
-        public InvoiceProfile()
+
+        public Invoiceitemprofile()
         {
-            CreateMap<InvoiceDTO,Invoice>().ReverseMap();
+            CreateMap<InvoiceItem,InvoiceItemDTO>().ReverseMap();
 
         }
+
     }
 }
