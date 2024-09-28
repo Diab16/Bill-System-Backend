@@ -15,9 +15,11 @@ namespace Bill_system_API
 
             // Add services to the container.
             builder.Services.AddDbContext<ApplicationDbContext>(op =>
-                op.UseLazyLoadingProxies().UseSqlServer(builder.Configuration.GetConnectionString("cslocal")));
+            {
+                op.UseLazyLoadingProxies().UseSqlServer(builder.Configuration.GetConnectionString("cslocal"));
+            });
 
-            builder.Services.AddControllers().AddNewtonsoftJson(op =>
+        builder.Services.AddControllers().AddNewtonsoftJson(op =>
                 op.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -43,6 +45,8 @@ namespace Bill_system_API
                 cfg.AddProfile(new CompanyProfile());
                 cfg.AddProfile(new UnitProfile());
                 cfg.AddProfile(new TypesProfile());
+                cfg.AddProfile(new ClientProfile());
+                cfg.AddProfile(new InvoiceProfile());
             });
 
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();

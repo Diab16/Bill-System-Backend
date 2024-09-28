@@ -3,6 +3,7 @@ using Bill_system_API.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Bill_system_API.DTOs;
+using AutoMapper;
 
 
 namespace Bill_system_API.Controllers
@@ -12,59 +13,48 @@ namespace Bill_system_API.Controllers
     public class UnitController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper mapper;
 
-        public UnitController(IUnitOfWork unitOfWork)
+        public UnitController(IUnitOfWork unitOfWork , IMapper mapper)
         {
             _unitOfWork = unitOfWork;
+            this.mapper = mapper;
         }
 
         // GET: api/Unit
         [HttpGet]
-        public ActionResult<IEnumerable<Unit>> GetUnits()
+        public ActionResult<IEnumerable<UnitDTO>> GetUnits()
         {
-            var units = _unitOfWork.Units.GetAll();
-            return Ok(units);
+            var units = _unitOfWork.Units.GetAll().ToList();
+            List<UnitDTO> unitsMapped = mapper.Map<List<UnitDTO>>(units);
+            return Ok(unitsMapped);
         }
 
         // GET: api/Unit/5
         [HttpGet("{id}")]
         public ActionResult<UnitDTO> GetUnit(int id)
         {
-            var unit = _unitOfWork.Units.GetAll().FirstOrDefault(u => u.Id == id);
+            var unit = _unitOfWork.Units.getById(id);
 
             if (unit == null)
             {
                 return NotFound();
             }
-
-            var items = _unitOfWork.Items.GetAll().Where(i => i.UnitId == id).ToList();
-
-            var unitDto = new UnitDTO
-            {
-                Id = unit.Id,
-                Name = unit.Name,
-                Notes = unit.Notes
-            };
-
-            
+            UnitDTO unitDto = mapper.Map<UnitDTO>(unit);
 
             return Ok(unitDto);
         }
 
         // POST: api/Unit
         [HttpPost]
-        public ActionResult<Unit> PostUnit([FromBody] UnitDTO unitDto)
+        public ActionResult PostUnit([FromBody] UnitDTO unitDto)
         {
             if (unitDto == null)
             {
                 return BadRequest("Unit data is required.");
             }
 
-            var unit = new Unit
-            {
-                Name = unitDto.Name,
-                Notes = unitDto.Notes
-            };
+            Unit unit = mapper.Map<Unit>(unitDto);
 
             _unitOfWork.Units.add(unit);
             _unitOfWork.Complete();
@@ -86,7 +76,7 @@ namespace Bill_system_API.Controllers
                 return BadRequest("Unit ID mismatch.");
             }
 
-            var existingUnit = _unitOfWork.Units.GetAll().FirstOrDefault(u => u.Id == id);
+            var existingUnit = _unitOfWork.Units.getById(id);
             if (existingUnit == null)
             {
                 return NotFound();
@@ -108,7 +98,7 @@ namespace Bill_system_API.Controllers
         [HttpDelete("{id}")]
         public IActionResult DeleteUnit(int id)
         {
-            var unit = _unitOfWork.Units.GetAll().FirstOrDefault(u => u.Id == id);
+            var unit = _unitOfWork.Units.getById(id);
 
             if (unit == null)
             {

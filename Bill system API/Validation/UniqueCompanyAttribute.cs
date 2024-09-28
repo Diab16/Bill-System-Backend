@@ -1,4 +1,5 @@
-﻿using Bill_system_API.Models;
+﻿using Bill_system_API.DTOs;
+using Bill_system_API.Models;
 using System.ComponentModel.DataAnnotations;
 
 namespace Bill_system_API.Validation
@@ -12,7 +13,7 @@ namespace Bill_system_API.Validation
             // the name that we gonna make check on 
 
             string? companyName = value?.ToString();
-            Company? companyFromReq = validationContext.ObjectInstance as Company;
+            CompanyDTO? companyFromReq = validationContext.ObjectInstance as CompanyDTO;
 
 
             // get Course  from the requst 
