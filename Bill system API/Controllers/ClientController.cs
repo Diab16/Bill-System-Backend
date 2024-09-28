@@ -1,4 +1,5 @@
-﻿using Bill_system_API.DTOs;
+﻿using AutoMapper;
+using Bill_system_API.DTOs;
 using Bill_system_API.IRepositories;
 using Bill_system_API.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -12,105 +13,81 @@ namespace Bill_system_API.Controllers
     [ApiController]
     public class ClientController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
-
-        public ClientController(ApplicationDbContext context)
+        private readonly IMapper mapper;
+        private readonly IUnitOfWork unitOfWork;
+        public ClientController(IMapper mapper, IUnitOfWork unitOfWork)
         {
-            _context = context;
+            this.mapper = mapper;
+            this.unitOfWork = unitOfWork;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Client>>> GetClients()
+        public ActionResult<ClientDTO> GetClients()
         {
-            return await _context.Client.ToListAsync();
+            var clients = unitOfWork.Clients.GetAll().ToList();
+            List<ClientDTO> clientsMapped = mapper.Map<List<ClientDTO>>(clients);
+            return Ok(clientsMapped);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Client>> GetClient(int id)
+        public ActionResult<ClientDTO> GetClient(int id)
         {
-            var client = await _context.Client.FindAsync(id);
-
+            var client = unitOfWork.Clients.getById(id);
             if (client == null)
             {
                 return NotFound();
             }
-
-            return client;
+            ClientDTO clientMapped = mapper.Map<ClientDTO>(client);
+            return Ok(clientMapped);
         }
 
         [HttpPost]
-        public async Task<ActionResult<Client>> PostClient(ClientDTO clientDto)
+        public ActionResult<ClientDTO> PostClient(ClientDTO clientDTO)
         {
-            var client = new Client
+            if (clientDTO == null)
             {
-                Name = clientDto.Name,
-                Phone = clientDto.Phone,
-                Address = clientDto.Address
-            };
-
-            _context.Client.Add(client);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetClient", new { id = client.Id }, client);
+                return BadRequest();
+            }
+            Client clientNew = mapper.Map<Client>(clientDTO);
+            unitOfWork.Clients.add(clientNew);
+            unitOfWork.Complete();
+            return CreatedAtAction("GetClient", new { id = clientNew.Id }, clientNew);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutClient(int id, ClientDTO clientDto)
+        public IActionResult PutClient(int id, ClientDTO clientDTO)
         {
-            if (id != clientDto.Id)
+            if (id != clientDTO.Id)
             {
-                return BadRequest("ID in the URL does not match the ID in the body.");
+                return BadRequest();
             }
-
-            var client = await _context.Client.FindAsync(id);
-            if (client == null)
+            Client clientDB = unitOfWork.Clients.getById(id);
+            if (clientDB == null)
             {
-                return NotFound("Client not found.");
+                return NotFound();
             }
-
-            client.Name = clientDto.Name;
-            client.Phone = clientDto.Phone;
-            client.Address = clientDto.Address;
-
-            _context.Entry(client).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ClientExists(id))
-                {
-                    return NotFound("Client not found.");
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            clientDB.Name = clientDTO.Name;
+            clientDB.Phone = clientDTO.Phone;
+            clientDB.Address = clientDTO.Address;
+            unitOfWork.Clients.update(clientDB);
+            unitOfWork.Complete();
 
             return NoContent();
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteClient(int id)
+        public IActionResult DeleteClient(int id)
         {
-            var client = await _context.Client.FindAsync(id);
-            if (client == null)
+            var clientDB = unitOfWork.Clients.getById(id);
+            if (clientDB == null)
             {
-                return NotFound("Client not found.");
+                return NotFound();
             }
 
-            _context.Client.Remove(client);
-            await _context.SaveChangesAsync();
-
+            unitOfWork.Clients.delete(clientDB);
+            unitOfWork.Complete();
             return NoContent();
         }
 
-        private bool ClientExists(int id)
-        {
-            return _context.Client.Any(e => e.Id == id);
-        }
     }
 }
