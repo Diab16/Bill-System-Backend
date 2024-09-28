@@ -4,6 +4,7 @@ using Bill_system_API.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Bill_system_API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240928111610_Add_Identity")]
+    partial class Add_Identity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -110,7 +113,7 @@ namespace Bill_system_API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Client", (string)null);
+                    b.ToTable("Client");
                 });
 
             modelBuilder.Entity("Bill_system_API.Models.Company", b =>
@@ -130,7 +133,7 @@ namespace Bill_system_API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Companies", (string)null);
+                    b.ToTable("Companies");
                 });
 
             modelBuilder.Entity("Bill_system_API.Models.Employee", b =>
@@ -147,7 +150,7 @@ namespace Bill_system_API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Employees", (string)null);
+                    b.ToTable("Employees");
                 });
 
             modelBuilder.Entity("Bill_system_API.Models.Invoice", b =>
@@ -185,7 +188,7 @@ namespace Bill_system_API.Migrations
 
                     b.HasIndex("EmployeeId");
 
-                    b.ToTable("Invoices", (string)null);
+                    b.ToTable("Invoices");
                 });
 
             modelBuilder.Entity("Bill_system_API.Models.InvoiceItem", b =>
@@ -220,7 +223,7 @@ namespace Bill_system_API.Migrations
 
                     b.HasIndex("itemId");
 
-                    b.ToTable("InvoiceItems", (string)null);
+                    b.ToTable("InvoiceItems");
                 });
 
             modelBuilder.Entity("Bill_system_API.Models.Item", b =>
@@ -264,7 +267,7 @@ namespace Bill_system_API.Migrations
 
                     b.HasIndex("UnitId");
 
-                    b.ToTable("Items", (string)null);
+                    b.ToTable("Items");
                 });
 
             modelBuilder.Entity("Bill_system_API.Models.Type", b =>
@@ -289,7 +292,7 @@ namespace Bill_system_API.Migrations
 
                     b.HasIndex("CompanyId");
 
-                    b.ToTable("Types", (string)null);
+                    b.ToTable("Types");
                 });
 
             modelBuilder.Entity("Bill_system_API.Models.Unit", b =>
@@ -309,7 +312,7 @@ namespace Bill_system_API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Units", (string)null);
+                    b.ToTable("Units");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
