@@ -4,6 +4,9 @@ using Bill_system_API.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Bill_system_API.MappinigProfiles;
 using Type = Bill_system_API.Models.Type;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace Bill_system_API
 {
@@ -12,6 +15,29 @@ namespace Bill_system_API
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            //Inject Identity
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>();
+            // Add default Schema to validate on Token
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = "mySchema"; // Note: Removed space in schema name
+                options.DefaultChallengeScheme = "mySchema"; // Added DefaultChallengeScheme
+            })
+            .AddJwtBearer("mySchema", options =>
+            {
+                string key = "Welcom to my secrit key in Bill System"; // Ensure this key is stored securely, e.g., in app settings
+                var secretKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(key));
+
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ValidateLifetime = true, // Validate the token expiration
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = secretKey
+                };
+            });
+
 
             // Add services to the container.
             builder.Services.AddDbContext<ApplicationDbContext>(op =>
