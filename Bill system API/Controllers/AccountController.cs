@@ -79,7 +79,7 @@ namespace Bill_system_API.Controllers
                             );
                         //TokenObj Encoding to String
                         var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
-                        return Ok(tokenString);
+                        return Ok(new { token = tokenString }); // Return token as part of a JSON object
                         #endregion
                     }
                     else

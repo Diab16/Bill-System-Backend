@@ -29,6 +29,7 @@ namespace Bill_system_API.Controllers
             return Ok(clientsMapped);
         }
 
+        [Authorize]
         [HttpGet("{id}")]
         public ActionResult<ClientDTO> GetClient(int id)
         {
@@ -40,7 +41,7 @@ namespace Bill_system_API.Controllers
             ClientDTO clientMapped = mapper.Map<ClientDTO>(client);
             return Ok(clientMapped);
         }
-
+        [Authorize]
         [HttpPost]
         public ActionResult<ClientDTO> PostClient(ClientDTO clientDTO)
         {
@@ -54,6 +55,7 @@ namespace Bill_system_API.Controllers
             return CreatedAtAction("GetClient", new { id = clientNew.Id }, clientNew);
         }
 
+        [Authorize]
         [HttpPut("{id}")]
         public IActionResult PutClient(int id, ClientDTO clientDTO)
         {
@@ -75,6 +77,7 @@ namespace Bill_system_API.Controllers
             return NoContent();
         }
 
+        [Authorize]
         [HttpDelete("{id}")]
         public IActionResult DeleteClient(int id)
         {

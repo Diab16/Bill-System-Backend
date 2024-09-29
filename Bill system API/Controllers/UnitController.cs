@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Bill_system_API.DTOs;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 
 
 namespace Bill_system_API.Controllers
@@ -23,6 +24,7 @@ namespace Bill_system_API.Controllers
 
         // GET: api/Unit
         [HttpGet]
+
         public ActionResult<IEnumerable<UnitDTO>> GetUnits()
         {
             var units = _unitOfWork.Units.GetAll().ToList();
@@ -32,6 +34,8 @@ namespace Bill_system_API.Controllers
 
         // GET: api/Unit/5
         [HttpGet("{id}")]
+        [Authorize]
+
         public ActionResult<UnitDTO> GetUnit(int id)
         {
             var unit = _unitOfWork.Units.getById(id);
@@ -47,6 +51,8 @@ namespace Bill_system_API.Controllers
 
         // POST: api/Unit
         [HttpPost]
+        [Authorize]
+
         public ActionResult PostUnit([FromBody] UnitDTO unitDto)
         {
             if (unitDto == null)
@@ -64,6 +70,8 @@ namespace Bill_system_API.Controllers
 
         // PUT: api/Unit/5
         [HttpPut("{id}")]
+        [Authorize]
+
         public IActionResult PutUnit(int id, [FromBody] UnitDTO unitDto)
         {
             if (unitDto == null)
@@ -96,6 +104,8 @@ namespace Bill_system_API.Controllers
 
         // DELETE: api/Unit/5
         [HttpDelete("{id}")]
+        [Authorize]
+
         public IActionResult DeleteUnit(int id)
         {
             var unit = _unitOfWork.Units.getById(id);

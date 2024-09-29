@@ -3,6 +3,7 @@ using Bill_system_API.DTOs;
 using Bill_system_API.IRepositories;
 using Bill_system_API.Models;
 using Bill_system_API.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Immutable;
@@ -10,6 +11,7 @@ using Type = Bill_system_API.Models.Type;
 
 namespace Bill_system_API.Controllers
 {
+    
     [Route("api/[controller]")]
     [ApiController]
     public class ItemsController : ControllerBase
@@ -97,6 +99,7 @@ namespace Bill_system_API.Controllers
         }
 
 
+        [Authorize]
 
         [HttpPost]
         public ActionResult<Item> AddItem([FromBody] ItemDto itemDto)
@@ -134,6 +137,7 @@ namespace Bill_system_API.Controllers
             }
         }
 
+        [Authorize]
 
         [HttpGet("GetById/{id}")]
         public ActionResult<Item> GetItemById(int id)
@@ -143,6 +147,9 @@ namespace Bill_system_API.Controllers
             ItemDto itemDto = mapper.Map<Item, ItemDto>(item); 
             return Ok(item);
         }
+
+        [Authorize]
+
 
         [HttpDelete("{id}")]
        public ActionResult<Item> DeleteItem(int id )
@@ -155,8 +162,7 @@ namespace Bill_system_API.Controllers
 
         }
 
-
-
+        [Authorize]
         [HttpPut]
         public ActionResult<ItemDto> EditItem([FromBody] ItemDto itemDto)
         {
