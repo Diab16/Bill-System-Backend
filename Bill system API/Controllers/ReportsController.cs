@@ -33,7 +33,9 @@ namespace Bill_system_API.Controllers
                     {
                         ItemId = item.Id,
                         ItemName = item.Name,
-                        ItemAvailableAmount = item.AvailableAmount
+                        ItemAvailableAmount = item.AvailableAmount,
+                        ItemBuyingPrice = item.BuyingPrice,
+                        ItemSellingPrice= item.SellingPrice
                     }).ToList();
                     return Ok(Items);
                 }
@@ -48,7 +50,7 @@ namespace Bill_system_API.Controllers
         {
             try
             {
-                List<Invoice> invoices = _invoiceRepository.GetAll().Where(x=>x.Date>=DateOnly.Parse(_date.first) || x.Date<= DateOnly.Parse(_date.last)).ToList();
+                List<Invoice> invoices = _invoiceRepository.GetAll().Where(x=>x.Date>=DateOnly.Parse(_date.first) && x.Date<= DateOnly.Parse(_date.last)).ToList();
                 if(invoices.Count == 0) { return NotFound(); }
                 else
                 {
